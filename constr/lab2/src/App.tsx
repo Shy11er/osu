@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Chart } from "react-google-charts";
 
 // Функция для генерации случайного числа с нормальным распределением
@@ -9,6 +9,9 @@ function generateRandomNumber(mean, variance) {
   return z * Math.sqrt(variance) + mean;
 }
 
+/**
+ * <h1>Function</h1>
+ */
 function App() {
   const [sequenceY, setSequenceY] = useState([]);
   const [mean, setMean] = useState(0);
@@ -22,7 +25,7 @@ function App() {
     );
 
     // Формирование последовательности Y_i
-    let newSequenceY = [];
+    let newSequenceY: number[] = [];
     randomNumbers.forEach((x, i) => {
       if (i === 0) {
         newSequenceY.push(x);
@@ -34,7 +37,8 @@ function App() {
     setSequenceY(newSequenceY);
 
     // Вычисление среднего значения
-    const avg = newSequenceY.reduce((sum, y) => sum + y, 0) / newSequenceY.length;
+    const avg =
+      newSequenceY.reduce((sum, y) => sum + y, 0) / newSequenceY.length;
     setMean(avg);
 
     // Вычисление дисперсии
@@ -57,14 +61,30 @@ function App() {
 
     const histogramData = [["Interval", "Count"]];
     for (let i = 0; i < 10; i++) {
-      histogramData.push([`${min + i * step}-${min + (i + 1) * step}`, histogram[i]]);
+      histogramData.push([
+        `${min + i * step}-${min + (i + 1) * step}`,
+        histogram[i],
+      ]);
     }
 
     setHistogramData(histogramData);
   }, []);
 
+  console.log(histogramData);
+  console.log(mean);
+  console.log(variance);
+  console.log(sequenceY);
+
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        width: "100%",
+      }}
+    >
       <h1>Генерация последовательности Y</h1>
       <p>Среднее значение: {mean.toFixed(2)}</p>
       <p>Дисперсия: {variance.toFixed(2)}</p>
