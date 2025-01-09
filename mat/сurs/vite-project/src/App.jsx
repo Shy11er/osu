@@ -6,16 +6,18 @@ const App = () => {
     const [xValues, setXValues] = useState([]);
     const [yValues, setYValues] = useState([]);
     const [loaded, setLoaded] = useState(false);
-    const [xStar, setXStar] = useState("");
-    const [yStar, setYStar] = useState(null);
-    const [convergenceTable, setConvergenceTable] = useState([]);
+    const [yStars, setYStars] = useState([]);
+    const [convergenceTables, setConvergenceTables] = useState([]);
+
+    // Задаем несколько значений для X*
+    const xStars = [0.05, 0.07, 0.09, 0.15, 0.19];
 
     // Функция для загрузки файла
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
             Papa.parse(file, {
-                delimiter: ",",
+                delimiter: ",", // используем запятую как разделитель
                 complete: (result) => {
                     try {
                         const data = result.data.map((row) =>
@@ -37,8 +39,8 @@ const App = () => {
                         setXValues(x);
                         setYValues(y);
                         setLoaded(true);
-                        setYStar(null);
-                        setConvergenceTable([]);
+                        setYStars([]);
+                        setConvergenceTables([]);
                     } catch (error) {
                         alert("Ошибка при обработке файла: " + error.message);
                     }
@@ -97,60 +99,50 @@ const App = () => {
         return { result, table };
     };
 
-    // Функция для вычисления результата
+    // Функция для вычисления результатов для нескольких значений X*
     const handleCalculate = () => {
         if (!loaded) {
             alert("Сначала загрузите CSV-файл!");
             return;
         }
 
-        const xValue = parseFloat(xStar.replace(",", "."));
-        if (isNaN(xValue)) {
-            alert("Введите корректное значение для X*.");
-            return;
-        }
+        const yResults = [];
+        const tables = [];
 
         try {
-            const { result, table } = newtonInterpolation(
-                xValues,
-                yValues,
-                xValue
-            );
-            setYStar(result);
-            setConvergenceTable(table);
+            // Вычисляем для каждого значения X* и генерируем таблицу сходимости
+            xStars.forEach((xStar) => {
+                const { result, table } = newtonInterpolation(
+                    xValues,
+                    yValues,
+                    xStar
+                );
+                yResults.push({ xStar, yStar: result });
+                tables.push(table);
+            });
+
+            setYStars(yResults);
+            setConvergenceTables(tables);
         } catch (error) {
             alert("Ошибка во время интерполяции: " + error.message);
         }
     };
 
-    // Генерация точек для тестовых функций
-    const testX = Array.from({ length: 100 }, (_, i) => i * 0.002 + 0.02);
+    // Генерация точек для тестовых функций с более широким диапазоном
+    const testX = Array.from({ length: 100 }, (_, i) => i * 0.02); // Более широкий диапазон для синуса и косинуса
+
+    // Уменьшаем амплитуду синуса и косинуса
     const testFunctions = {
-        "Линейная (y = 2x + 0.01)": testX.map((x) => 2 * x + 0.01),
-        "Квадратичная (y = x^2 + 0.01)": testX.map((x) => x ** 2 + 0.01),
-        "Экспоненциальная (y = e^x - 1)": testX.map((x) => Math.exp(x) - 1),
+        "Синусная (y = sin(x))": testX.map((x) => Math.sin(x) * 0.05),
+        "Косинусная (y = cos(x))": testX.map((x) => Math.cos(x) * 0.05),
     };
 
     return (
         <div style={{ padding: "20px" }}>
             <h1>Интерполяция методом Ньютона</h1>
             <input type="file" accept=".csv" onChange={handleFileUpload} />
-            <div>
-                <label>
-                    Введите X* для интерполяции:
-                    <input
-                        type="text"
-                        value={xStar}
-                        onChange={(e) => setXStar(e.target.value)}
-                    />
-                </label>
-                <button onClick={handleCalculate}>Вычислить</button>
-            </div>
-            {yStar !== null && (
-                <p>
-                    Интерполированное Y*: <strong>{yStar.toFixed(4)}</strong>
-                </p>
-            )}
+            <button onClick={handleCalculate}>Вычислить</button>
+
             {loaded && (
                 <Plot
                     data={[
@@ -162,54 +154,75 @@ const App = () => {
                             name: "Загруженные точки",
                             line: { color: "blue" },
                         },
-                        yStar !== null && {
-                            x: [parseFloat(xStar)],
+                        ...yStars.map(({ xStar, yStar }) => ({
+                            x: [xStar],
                             y: [yStar],
                             mode: "markers",
                             type: "scatter",
                             name: `X* = ${xStar}, Y* = ${yStar.toFixed(4)}`,
                             marker: { color: "red", size: 10 },
-                        },
-                        ...Object.entries(testFunctions).map(([name, yValues]) => ({
-                            x: testX,
-                            y: yValues,
-                            mode: "lines",
-                            type: "scatter",
-                            name,
                         })),
-                    ].filter(Boolean)}
+                        ...Object.entries(testFunctions).map(
+                            ([name, yValues]) => ({
+                                x: testX,
+                                y: yValues,
+                                mode: "lines",
+                                type: "scatter",
+                                name,
+                            })
+                        ),
+                    ]}
                     layout={{
                         title: "Интерполяция и тестовые функции",
-                        xaxis: { title: "X" },
-                        yaxis: { title: "Y" },
+                        xaxis: {
+                            title: "X",
+                            rangemode: "tozero", // Чтобы ось X не обрезалась
+                        },
+                        yaxis: {
+                            title: "Y",
+                            rangemode: "tozero", // Чтобы ось Y не обрезалась
+                        },
                     }}
                 />
             )}
-            {convergenceTable.length > 0 && (
+
+            {convergenceTables.length > 0 && (
                 <div>
-                    <h2>Таблица сходимости</h2>
-                    <table border="1" style={{ borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr>
-                                <th>Использованные корни</th>
-                                <th>Интерполированное значение</th>
-                                <th>Сходимость</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {convergenceTable.map((row, index) => (
-                                <tr key={index}>
-                                    <td>{row.roots}</td>
-                                    <td>{row.value.toFixed(10)}</td>
-                                    <td>
-                                        {row.convergence !== null
-                                            ? row.convergence.toFixed(10)
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <h2>Таблицы сходимости</h2>
+                    {yStars.map(({ xStar }, index) => (
+                        <div key={xStar}>
+                            <h3>Таблица для X* = {xStar}</h3>
+                            <table
+                                border="1"
+                                style={{ borderCollapse: "collapse" }}
+                            >
+                                <thead>
+                                    <tr>
+                                        <th>Использованные корни</th>
+                                        <th>Интерполированное значение</th>
+                                        <th>Сходимость</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {convergenceTables[index].map(
+                                        (row, rowIndex) => (
+                                            <tr key={rowIndex}>
+                                                <td>{row.roots}</td>
+                                                <td>{row.value.toFixed(10)}</td>
+                                                <td>
+                                                    {row.convergence !== null
+                                                        ? row.convergence.toFixed(
+                                                              10
+                                                          )
+                                                        : "N/A"}
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
