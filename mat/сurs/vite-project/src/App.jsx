@@ -131,70 +131,193 @@ const App = () => {
     // Генерация точек для тестовых функций с более широким диапазоном
     const testX = Array.from({ length: 100 }, (_, i) => i * 0.02); // Более широкий диапазон для синуса и косинуса
 
-    // Уменьшаем амплитуду синуса и косинуса
+    // Генерация тестовых функций
     const testFunctions = {
-        "Синусная (y = sin(x))": testX.map((x) => Math.sin(x) * 0.05),
-        "Косинусная (y = cos(x))": testX.map((x) => Math.cos(x) * 0.05),
+        "Синусная (y = sin(x))": testX.map((x) => Math.sin(x)),
+        "Косинусная (y = cos(x))": testX.map((x) => Math.cos(x)),
+        "Экспоненциальная (y = e^x)": testX.map((x) => Math.exp(x)),
     };
 
     return (
         <div style={{ padding: "20px" }}>
-            <h1>Интерполяция методом Ньютона</h1>
+            <h1>Функции на разных графиках</h1>
             <input type="file" accept=".csv" onChange={handleFileUpload} />
             <button onClick={handleCalculate}>Вычислить</button>
 
-            {loaded && (
-                <Plot
-                    data={[
-                        {
-                            x: xValues,
-                            y: yValues,
-                            mode: "markers+lines",
-                            type: "scatter",
-                            name: "Загруженные точки",
-                            line: { color: "blue" },
-                        },
-                        ...yStars.map(({ xStar, yStar }) => ({
-                            x: [xStar],
-                            y: [yStar],
-                            mode: "markers",
-                            type: "scatter",
-                            name: `X* = ${xStar}, Y* = ${yStar.toFixed(4)}`,
-                            marker: { color: "red", size: 10 },
-                        })),
-                        ...Object.entries(testFunctions).map(
-                            ([name, yValues]) => ({
-                                x: testX,
-                                y: yValues,
-                                mode: "lines",
-                                type: "scatter",
-                                name,
-                            })
-                        ),
-                    ]}
-                    layout={{
-                        title: "Интерполяция и тестовые функции",
-                        xaxis: {
-                            title: "X",
-                            rangemode: "tozero", // Чтобы ось X не обрезалась
-                        },
-                        yaxis: {
-                            title: "Y",
-                            rangemode: "tozero", // Чтобы ось Y не обрезалась
-                        },
-                    }}
-                />
-            )}
-
+            {/* График для косинуса */}
+            <h2>График косинуса</h2>
+            <Plot
+                data={[
+                    {
+                        x: testX,
+                        y: testFunctions["Косинусная (y = cos(x))"],
+                        mode: "lines",
+                        type: "scatter",
+                        name: "Косинус",
+                    },
+                ]}
+                layout={{
+                    title: "Косинус (y = cos(x))",
+                    xaxis: { title: "X" },
+                    yaxis: { title: "Y" },
+                }}
+            />
             {convergenceTables.length > 0 && (
                 <div>
-                    <h2>Таблицы сходимости</h2>
-                    {yStars.map(({ xStar }, index) => (
-                        <div key={xStar}>
-                            <h3>Таблица для X* = {xStar}</h3>
+                    <h3>Таблица сходимости для косинуса</h3>
+                    <table
+                        border="1"
+                        style={{ borderCollapse: "collapse", width: "100%" }}
+                    >
+                        <thead>
+                            <tr>
+                                <th>Использованные корни</th>
+                                <th>Интерполированное значение</th>
+                                <th>Сходимость</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {convergenceTables[0].map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    <td>{row.roots}</td>
+                                    <td>{row.value.toFixed(10)}</td>
+                                    <td>
+                                        {row.convergence !== null
+                                            ? row.convergence.toFixed(10)
+                                            : "N/A"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* График для синуса */}
+            <h2>График синуса</h2>
+            <Plot
+                data={[
+                    {
+                        x: testX,
+                        y: testFunctions["Синусная (y = sin(x))"],
+                        mode: "lines",
+                        type: "scatter",
+                        name: "Синус",
+                    },
+                ]}
+                layout={{
+                    title: "Синус (y = sin(x))",
+                    xaxis: { title: "X" },
+                    yaxis: { title: "Y" },
+                }}
+            />
+            {convergenceTables.length > 1 && (
+                <div>
+                    <h3>Таблица сходимости для синуса</h3>
+                    <table
+                        border="1"
+                        style={{ borderCollapse: "collapse", width: "100%" }}
+                    >
+                        <thead>
+                            <tr>
+                                <th>Использованные корни</th>
+                                <th>Интерполированное значение</th>
+                                <th>Сходимость</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {convergenceTables[1].map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    <td>{row.roots}</td>
+                                    <td>{row.value.toFixed(10)}</td>
+                                    <td>
+                                        {row.convergence !== null
+                                            ? row.convergence.toFixed(10)
+                                            : "N/A"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* График для экспоненциальной функции */}
+            <h2>График экспоненциальной функции</h2>
+            <Plot
+                data={[
+                    {
+                        x: testX,
+                        y: testFunctions["Экспоненциальная (y = e^x)"],
+                        mode: "lines",
+                        type: "scatter",
+                        name: "Экспоненциальная",
+                    },
+                ]}
+                layout={{
+                    title: "Экспоненциальная функция (y = e^x)",
+                    xaxis: { title: "X" },
+                    yaxis: { title: "Y" },
+                }}
+            />
+            {convergenceTables.length > 2 && (
+                <div>
+                    <h3>Таблица сходимости для экспоненциальной функции</h3>
+                    <table
+                        border="1"
+                        style={{ borderCollapse: "collapse", width: "100%" }}
+                    >
+                        <thead>
+                            <tr>
+                                <th>Использованные корни</th>
+                                <th>Интерполированное значение</th>
+                                <th>Сходимость</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {convergenceTables[2].map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    <td>{row.roots}</td>
+                                    <td>{row.value.toFixed(10)}</td>
+                                    <td>
+                                        {row.convergence !== null
+                                            ? row.convergence.toFixed(10)
+                                            : "N/A"}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* График для функции из CSV */}
+            {loaded && (
+                <>
+                    <h2>График из CSV файла</h2>
+                    <Plot
+                        data={[
+                            {
+                                x: xValues,
+                                y: yValues,
+                                mode: "markers+lines",
+                                type: "scatter",
+                                name: "Функция из CSV",
+                                line: { color: "blue" },
+                            },
+                        ]}
+                        layout={{
+                            title: "Функция из CSV",
+                            xaxis: { title: "X" },
+                            yaxis: { title: "Y" },
+                        }}
+                    />
+                    {convergenceTables.length > 3 && (
+                        <div>
+                            <h3>Таблица сходимости для CSV функции</h3>
                             <table
                                 border="1"
-                                style={{ borderCollapse: "collapse" }}
+                                style={{ borderCollapse: "collapse", width: "100%" }}
                             >
                                 <thead>
                                     <tr>
@@ -204,26 +327,22 @@ const App = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {convergenceTables[index].map(
-                                        (row, rowIndex) => (
-                                            <tr key={rowIndex}>
-                                                <td>{row.roots}</td>
-                                                <td>{row.value.toFixed(10)}</td>
-                                                <td>
-                                                    {row.convergence !== null
-                                                        ? row.convergence.toFixed(
-                                                              10
-                                                          )
-                                                        : "N/A"}
-                                                </td>
-                                            </tr>
-                                        )
-                                    )}
+                                    {convergenceTables[3].map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            <td>{row.roots}</td>
+                                            <td>{row.value.toFixed(10)}</td>
+                                            <td>
+                                                {row.convergence !== null
+                                                    ? row.convergence.toFixed(10)
+                                                    : "N/A"}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
-                    ))}
-                </div>
+                    )}
+                </>
             )}
         </div>
     );
