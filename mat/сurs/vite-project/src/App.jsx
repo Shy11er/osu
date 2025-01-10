@@ -8,6 +8,7 @@ const App = () => {
     const [loaded, setLoaded] = useState(false);
     const [csvConvergence, setCsvConvergence] = useState([]);
     const [polynomial, setPolynomial] = useState("");
+    const [interpolationResults, setInterpolationResults] = useState([]);
 
     // Статичные точки для каждой функции
     const sinX = [0, Math.PI / 6, Math.PI / 4, Math.PI / 2]; // x для синуса
@@ -57,6 +58,14 @@ const App = () => {
                         // Вычисление конечного многочлена
                         const polynomialStr = constructPolynomial(x, y);
                         setPolynomial(polynomialStr);
+
+                        // Вычисление значений функции в точках интерполяции
+                        const interpolationPoints = [0.05, 0.07, 0.09, 0.15, 0.19];
+                        const results = interpolationPoints.map((xi) => {
+                            const table = newtonInterpolation(x, y, xi);
+                            return { x: xi, y: table.at(-1).Pi };
+                        });
+                        setInterpolationResults(results);
                     } catch (error) {
                         alert("Ошибка при обработке файла: " + error.message);
                     }
@@ -162,9 +171,6 @@ const App = () => {
     const cosConvergenceAt005 = newtonInterpolation(cosX, cosY, 0.05);
     const expConvergenceAt005 = newtonInterpolation(expX, expY, 0.05);
 
-    // Дополнительные точки интерполяции для функции из CSV
-    const interpolationPoints = [0.05, 0.07, 0.09, 0.15, 0.19];
-
     return (
         <div style={{ padding: "20px" }}>
             <h1>Функции на разных графиках</h1>
@@ -260,13 +266,11 @@ const App = () => {
                                 line: { color: "blue" },
                             },
                             {
-                                x: interpolationPoints,
-                                y: interpolationPoints.map((xi) =>
-                                    newtonInterpolation(xValues, yValues, xi).at(-1).Pi
-                                ),
+                                x: [0.05, 0.07, 0.09, 0.15, 0.19],
+                                y: interpolationResults.map((point) => point.y),
                                 mode: "markers",
                                 type: "scatter",
-                                name: "Точки интерполяции",
+                                name: "Интерполяционные точки",
                                 marker: { color: "orange", size: 8 },
                             },
                         ]}
@@ -276,6 +280,15 @@ const App = () => {
                             yaxis: { title: "Y" },
                         }}
                     />
+                    <h3>Результаты интерполяции для точек</h3>
+                    <ul>
+                        {interpolationResults.map((point, index) => (
+                            <li key={index}>
+                                y({point.x}) = {point.y.toFixed(10)}
+                            </li>
+                        ))}
+                    </ul>
+
                     <h3>Таблица сходимости для функции из CSV</h3>
                     {renderConvergenceTable(csvConvergence)}
 
