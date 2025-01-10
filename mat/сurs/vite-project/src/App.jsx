@@ -6,13 +6,19 @@ const App = () => {
     const [xValues, setXValues] = useState([]);
     const [yValues, setYValues] = useState([]);
     const [loaded, setLoaded] = useState(false);
-    const [yStars, setYStars] = useState([]);
-    const [convergenceTables, setConvergenceTables] = useState([]);
+    const [csvConvergence, setCsvConvergence] = useState([]);
+    const [polynomial, setPolynomial] = useState("");
 
-    // Задаем несколько значений для X*
-    const xStars = [0.05, 0.07, 0.09, 0.15, 0.19];
+    // Статичные точки для каждой функции
+    const sinX = [0, Math.PI / 6, Math.PI / 4, Math.PI / 2]; // x для синуса
+    const sinY = [0, 0.5, 0.707, 1]; // y для синуса
 
-    // Функция для загрузки файла
+    const cosX = [0, Math.PI / 6, Math.PI / 4, Math.PI / 2]; // x для косинуса
+    const cosY = [1, 0.866, 0.707, 0]; // y для косинуса
+
+    const expX = [0, 1, 2, 3]; // x для экспоненты
+    const expY = [1, Math.exp(1), Math.exp(2), Math.exp(3)]; // y для экспоненты
+
     const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -39,8 +45,18 @@ const App = () => {
                         setXValues(x);
                         setYValues(y);
                         setLoaded(true);
-                        setYStars([]);
-                        setConvergenceTables([]);
+
+                        // Вычисление таблицы сходимости для CSV файла
+                        const convergenceTable = newtonInterpolation(
+                            x,
+                            y,
+                            x[Math.floor(x.length / 2)] // Используем середину диапазона как x*
+                        );
+                        setCsvConvergence(convergenceTable);
+
+                        // Вычисление конечного многочлена
+                        const polynomialStr = constructPolynomial(x, y);
+                        setPolynomial(polynomialStr);
                     } catch (error) {
                         alert("Ошибка при обработке файла: " + error.message);
                     }
@@ -49,12 +65,7 @@ const App = () => {
         }
     };
 
-    // Функция интерполяции методом Ньютона
     const newtonInterpolation = (x, y, xStar) => {
-        if (x.some(isNaN) || y.some(isNaN)) {
-            throw new Error("Некорректные данные в массивах X или Y");
-        }
-
         const n = y.length;
         const coeffs = Array.from({ length: n }, () => Array(n).fill(0));
         const table = [];
@@ -65,144 +76,111 @@ const App = () => {
 
         for (let j = 1; j < n; j++) {
             for (let i = 0; i < n - j; i++) {
-                const denominator = x[i + j] - x[i];
-                if (denominator === 0) {
-                    throw new Error(
-                        "Деление на ноль при вычислении коэффициентов"
-                    );
-                }
                 coeffs[i][j] =
-                    (coeffs[i + 1][j - 1] - coeffs[i][j - 1]) / denominator;
+                    (coeffs[i + 1][j - 1] - coeffs[i][j - 1]) / (x[i + j] - x[i]);
             }
         }
 
         let result = coeffs[0][0];
-        let productTerm = 1;
+        let product = 1;
         let previousResult = result;
 
         for (let i = 1; i < n; i++) {
-            productTerm *= xStar - x[i - 1];
-            result += coeffs[0][i] * productTerm;
+            product *= xStar - x[i - 1];
+            result += coeffs[0][i] * product;
 
-            const rootsUsed = x.slice(0, i).join(", ");
             const convergence =
                 i > 1 ? Math.abs(result - previousResult) : null;
+
             table.push({
-                roots: rootsUsed,
-                value: result,
-                convergence,
+                i: i + 1,
+                Pi: result,
+                deltaPi: convergence !== null ? convergence : "N/A",
             });
 
             previousResult = result;
         }
 
-        return { result, table };
+        return table;
     };
 
-    // Функция для вычисления результатов для нескольких значений X*
-    const handleCalculate = () => {
-        if (!loaded) {
-            alert("Сначала загрузите CSV-файл!");
-            return;
+    const constructPolynomial = (x, y) => {
+        const n = y.length;
+        const coeffs = Array.from({ length: n }, () => Array(n).fill(0));
+
+        for (let i = 0; i < n; i++) {
+            coeffs[i][0] = y[i];
         }
 
-        const yResults = [];
-        const tables = [];
-
-        try {
-            // Вычисляем для каждого значения X* и генерируем таблицу сходимости
-            xStars.forEach((xStar) => {
-                const { result, table } = newtonInterpolation(
-                    xValues,
-                    yValues,
-                    xStar
-                );
-                yResults.push({ xStar, yStar: result });
-                tables.push(table);
-            });
-
-            setYStars(yResults);
-            setConvergenceTables(tables);
-        } catch (error) {
-            alert("Ошибка во время интерполяции: " + error.message);
+        for (let j = 1; j < n; j++) {
+            for (let i = 0; i < n - j; i++) {
+                coeffs[i][j] =
+                    (coeffs[i + 1][j - 1] - coeffs[i][j - 1]) / (x[i + j] - x[i]);
+            }
         }
+
+        let polynomial = `${coeffs[0][0]}`;
+
+        for (let j = 1; j < n; j++) {
+            let term = `${coeffs[0][j]}`;
+            for (let k = 0; k < j; k++) {
+                term += ` * (x - ${x[k]})`;
+            }
+            polynomial += ` + ${term}`;
+        }
+
+        return polynomial;
     };
 
-    // Генерация точек для тестовых функций с более широким диапазоном
-    const testX = Array.from({ length: 100 }, (_, i) => i * 0.02); // Более широкий диапазон для синуса и косинуса
+    const renderConvergenceTable = (tableData) => (
+        <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+            <thead>
+                <tr>
+                    <th>Количество точек i</th>
+                    <th>Pi(x*)</th>
+                    <th>|Pi(x*) - Pi-1(x*)|</th>
+                </tr>
+            </thead>
+            <tbody>
+                {tableData.map((row, index) => (
+                    <tr key={index}>
+                        <td>{row.i}</td>
+                        <td>{row.Pi.toFixed(10)}</td>
+                        <td>
+                            {typeof row.deltaPi === "number"
+                                ? row.deltaPi.toFixed(10)
+                                : "N/A"}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
 
-    // Генерация тестовых функций
-    const testFunctions = {
-        "Синусная (y = sin(x))": testX.map((x) => Math.sin(x)),
-        "Косинусная (y = cos(x))": testX.map((x) => Math.cos(x)),
-        "Экспоненциальная (y = e^x)": testX.map((x) => Math.exp(x)),
-    };
+    // Вычисление таблиц сходимости для каждой функции на точке 0.05
+    const sinConvergenceAt005 = newtonInterpolation(sinX, sinY, 0.05);
+    const cosConvergenceAt005 = newtonInterpolation(cosX, cosY, 0.05);
+    const expConvergenceAt005 = newtonInterpolation(expX, expY, 0.05);
+
+    // Дополнительные точки интерполяции для функции из CSV
+    const interpolationPoints = [0.05, 0.07, 0.09, 0.15, 0.19];
 
     return (
         <div style={{ padding: "20px" }}>
             <h1>Функции на разных графиках</h1>
             <input type="file" accept=".csv" onChange={handleFileUpload} />
-            <button onClick={handleCalculate}>Вычислить</button>
-
-            {/* График для косинуса */}
-            <h2>График косинуса</h2>
-            <Plot
-                data={[
-                    {
-                        x: testX,
-                        y: testFunctions["Косинусная (y = cos(x))"],
-                        mode: "lines",
-                        type: "scatter",
-                        name: "Косинус",
-                    },
-                ]}
-                layout={{
-                    title: "Косинус (y = cos(x))",
-                    xaxis: { title: "X" },
-                    yaxis: { title: "Y" },
-                }}
-            />
-            {convergenceTables.length > 0 && (
-                <div>
-                    <h3>Таблица сходимости для косинуса</h3>
-                    <table
-                        border="1"
-                        style={{ borderCollapse: "collapse", width: "100%" }}
-                    >
-                        <thead>
-                            <tr>
-                                <th>Использованные корни</th>
-                                <th>Интерполированное значение</th>
-                                <th>Сходимость</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {convergenceTables[0].map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    <td>{row.roots}</td>
-                                    <td>{row.value.toFixed(10)}</td>
-                                    <td>
-                                        {row.convergence !== null
-                                            ? row.convergence.toFixed(10)
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
 
             {/* График для синуса */}
             <h2>График синуса</h2>
             <Plot
                 data={[
                     {
-                        x: testX,
-                        y: testFunctions["Синусная (y = sin(x))"],
-                        mode: "lines",
+                        x: sinX,
+                        y: sinY,
+                        mode: "markers+lines",
                         type: "scatter",
                         name: "Синус",
+                        marker: { color: "red", size: 10 },
                     },
                 ]}
                 layout={{
@@ -211,47 +189,48 @@ const App = () => {
                     yaxis: { title: "Y" },
                 }}
             />
-            {convergenceTables.length > 1 && (
-                <div>
-                    <h3>Таблица сходимости для синуса</h3>
-                    <table
-                        border="1"
-                        style={{ borderCollapse: "collapse", width: "100%" }}
-                    >
-                        <thead>
-                            <tr>
-                                <th>Использованные корни</th>
-                                <th>Интерполированное значение</th>
-                                <th>Сходимость</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {convergenceTables[1].map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    <td>{row.roots}</td>
-                                    <td>{row.value.toFixed(10)}</td>
-                                    <td>
-                                        {row.convergence !== null
-                                            ? row.convergence.toFixed(10)
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+            <h3>Таблица сходимости для синуса</h3>
+            {renderConvergenceTable(newtonInterpolation(sinX, sinY, Math.PI / 3))}
+
+            <h3>Таблица сходимости для синуса (x* = 0.05)</h3>
+            {renderConvergenceTable(sinConvergenceAt005)}
+
+            {/* График для косинуса */}
+            <h2>График косинуса</h2>
+            <Plot
+                data={[
+                    {
+                        x: cosX,
+                        y: cosY,
+                        mode: "markers+lines",
+                        type: "scatter",
+                        name: "Косинус",
+                        marker: { color: "blue", size: 10 },
+                    },
+                ]}
+                layout={{
+                    title: "Косинус (y = cos(x))",
+                    xaxis: { title: "X" },
+                    yaxis: { title: "Y" },
+                }}
+            />
+            <h3>Таблица сходимости для косинуса</h3>
+            {renderConvergenceTable(newtonInterpolation(cosX, cosY, Math.PI / 3))}
+
+            <h3>Таблица сходимости для косинуса (x* = 0.05)</h3>
+            {renderConvergenceTable(cosConvergenceAt005)}
 
             {/* График для экспоненциальной функции */}
             <h2>График экспоненциальной функции</h2>
             <Plot
                 data={[
                     {
-                        x: testX,
-                        y: testFunctions["Экспоненциальная (y = e^x)"],
-                        mode: "lines",
+                        x: expX,
+                        y: expY,
+                        mode: "markers+lines",
                         type: "scatter",
                         name: "Экспоненциальная",
+                        marker: { color: "green", size: 10 },
                     },
                 ]}
                 layout={{
@@ -260,36 +239,11 @@ const App = () => {
                     yaxis: { title: "Y" },
                 }}
             />
-            {convergenceTables.length > 2 && (
-                <div>
-                    <h3>Таблица сходимости для экспоненциальной функции</h3>
-                    <table
-                        border="1"
-                        style={{ borderCollapse: "collapse", width: "100%" }}
-                    >
-                        <thead>
-                            <tr>
-                                <th>Использованные корни</th>
-                                <th>Интерполированное значение</th>
-                                <th>Сходимость</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {convergenceTables[2].map((row, rowIndex) => (
-                                <tr key={rowIndex}>
-                                    <td>{row.roots}</td>
-                                    <td>{row.value.toFixed(10)}</td>
-                                    <td>
-                                        {row.convergence !== null
-                                            ? row.convergence.toFixed(10)
-                                            : "N/A"}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+            <h3>Таблица сходимости для экспоненциальной функции</h3>
+            {renderConvergenceTable(newtonInterpolation(expX, expY, 2))}
+
+            <h3>Таблица сходимости для экспоненциальной функции (x* = 0.05)</h3>
+            {renderConvergenceTable(expConvergenceAt005)}
 
             {/* График для функции из CSV */}
             {loaded && (
@@ -305,43 +259,28 @@ const App = () => {
                                 name: "Функция из CSV",
                                 line: { color: "blue" },
                             },
+                            {
+                                x: interpolationPoints,
+                                y: interpolationPoints.map((xi) =>
+                                    newtonInterpolation(xValues, yValues, xi).at(-1).Pi
+                                ),
+                                mode: "markers",
+                                type: "scatter",
+                                name: "Точки интерполяции",
+                                marker: { color: "orange", size: 8 },
+                            },
                         ]}
                         layout={{
-                            title: "Функция из CSV",
+                            title: "Функция из CSV с точками интерполяции",
                             xaxis: { title: "X" },
                             yaxis: { title: "Y" },
                         }}
                     />
-                    {convergenceTables.length > 3 && (
-                        <div>
-                            <h3>Таблица сходимости для CSV функции</h3>
-                            <table
-                                border="1"
-                                style={{ borderCollapse: "collapse", width: "100%" }}
-                            >
-                                <thead>
-                                    <tr>
-                                        <th>Использованные корни</th>
-                                        <th>Интерполированное значение</th>
-                                        <th>Сходимость</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {convergenceTables[3].map((row, rowIndex) => (
-                                        <tr key={rowIndex}>
-                                            <td>{row.roots}</td>
-                                            <td>{row.value.toFixed(10)}</td>
-                                            <td>
-                                                {row.convergence !== null
-                                                    ? row.convergence.toFixed(10)
-                                                    : "N/A"}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                    <h3>Таблица сходимости для функции из CSV</h3>
+                    {renderConvergenceTable(csvConvergence)}
+
+                    <h3>Конечный многочлен для функции из CSV</h3>
+                    <p>{polynomial}</p>
                 </>
             )}
         </div>
