@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Мой университет</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                width: 100%;
+            }
+            header {
+                background: #0056b3;
+                color: white;
+                padding: 15px;
+                text-align: center;
+            }
+            nav {
+                background: #ddd;
+                padding: 10px;
+            }
+            nav a {
+                margin-right: 15px;
+                text-decoration: none;
+                color: #333;
+            }
+            .container {
+                display: flex;
+            }
+            .sidebar {
+                width: 20%;
+                background: #e3e3e3;
+                padding: 15px;
+                min-height: 100vh;
+            }
+            .content {
+                width: 80%;
+                padding: 15px;
+                background: white;
+            }
+            footer {
+                text-align: center;
+                padding: 10px;
+                background: #0056b3;
+                color: white;
+                margin-top: 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            table,
+            th,
+            td {
+                border: 1px solid black;
+                padding: 10px;
+                text-align: left;
+            }
+            th {
+                background: #0056b3;
+                color: white;
+            }
+            td {
+                background: #f9f9f9;
+            }
+        </style>
+    </head>
+    <body onload="loadPage('faculties.html')">
+        <header>
+            <h1>Мой университет</h1>
+        </header>
+        <nav>
+            <a href="index.html">Главная</a>
+            <a href="about.html">О нас</a>
+            <a href="gallery.html">Галерея</a>
+            <a href="contacts.html">Контакты</a>
+            <a href="guest.html">Гостевая</a>
+            <a href="library.html">Библиотека</a>
+            <a href="sports.html">Спорт</a>
+        </nav>
+        <div class="container">
+            <aside class="sidebar">
+                <h3>Навигация</h3>
+                <ul>
+                    <li><a href="faculties.html">Факультеты</a></li>
+                    <li><a href="events.html">События</a></li>
+                    <li><a href="students.html">Студенты</a></li>
+                </ul>
+            </aside>
+            <section class="content">
+                <h1>Факультеты</h1>
+                <ul>
+                    <li>Факультет физико-математических наук</li>
+                    <li>Факультет гуманитарных наук</li>
+                    <li>Факультет педагогики и психологии</li>
+                </ul>
+
+                <h1>События</h1>
+                <p>Список ближайших мероприятий:</p>
+                <table>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Название</th>
+                        <th>Место проведения</th>
+                    </tr>
+                    <tr>
+                        <td>25 марта 2025</td>
+                        <td>Научная конференция</td>
+                        <td>Аудитория 101</td>
+                    </tr>
+                    <tr>
+                        <td>10 апреля 2025</td>
+                        <td>День открытых дверей</td>
+                        <td>Главное здание</td>
+                    </tr>
+                </table>
+
+                <h1>Студенты</h1>
+                <p>Наша университетская жизнь в фотографиях:</p>
+                <img
+                    src="https://avatars.dzeninfra.ru/get-zen_doc/271828/pub_6522a7a080bf663a7f961934_6522a7da27b3461f0a26570a/scale_1200"
+                    alt="Студенческая жизнь"
+                />
+            </section>
+        </div>
+        <footer>
+            <p>&copy; 2025 Мой университет</p>
+        </footer>
+    </body>
+</html>

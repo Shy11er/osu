@@ -1,0 +1,280 @@
+/* Общие стили */
+body {
+    font-family: "Arial", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Шапка */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #8b0000;
+    color: white;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #ffd700;
+}
+
+/* Главный баннер */
+.hero {
+    background: url("https://lptvdesign.com/wp-content/uploads/2023/11/1V4A3036-HDR-1800x1200.jpg")
+        center/cover no-repeat;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+.hero .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.hero h2 {
+    font-size: 48px;
+    z-index: 1;
+    position: relative;
+}
+
+.hero p {
+    font-size: 22px;
+    z-index: 1;
+    position: relative;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    margin-top: 20px;
+    background-color: #ffd700;
+    color: black;
+    font-size: 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+    z-index: 1;
+    position: relative;
+}
+
+.btn:hover {
+    background-color: #ffcc00;
+}
+
+/* Особенности */
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 50px;
+    text-align: center;
+}
+
+.feature {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 30%;
+    transition: transform 0.3s;
+}
+
+.feature:hover {
+    transform: scale(1.05);
+}
+
+.feature img {
+    width: 100%;
+    height: 200px; /* Фиксированная высота */
+    object-fit: cover; /* Обрезка изображения, чтобы оно полностью заполняло контейнер */
+    border-radius: 10px;
+}
+
+.feature h3 {
+    font-size: 22px;
+    margin: 15px 0;
+}
+
+.feature p {
+    font-size: 16px;
+}
+
+/* Подвал */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #8b0000;
+    color: white;
+    margin-top: 30px;
+}
+
+.menu {
+    text-align: center;
+    padding: 80px 20px;
+    margin-top: 70px;
+}
+
+.menu h2 {
+    font-size: 36px;
+    color: #8b0000;
+    margin-bottom: 20px;
+}
+
+/* Контейнер карточек меню */
+.menu-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Карточка меню */
+.menu-item {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.menu-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Изображение в карточке */
+.menu-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Текст в карточке */
+.menu-text {
+    padding: 15px;
+}
+
+.menu-text h3 {
+    font-size: 22px;
+    color: #8b0000;
+    margin-bottom: 10px;
+}
+
+.menu-text p {
+    font-size: 16px;
+    color: #555;
+}
+
+.price {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    color: #8b0000;
+    margin-top: 10px;
+}
+
+/* Культурная программа */
+.program {
+    text-align: center;
+    padding: 80px 20px;
+    margin-top: 70px;
+}
+
+.program h2 {
+    font-size: 36px;
+    color: #8b0000;
+    margin-bottom: 10px;
+}
+
+.subtext {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Контейнер событий */
+.program-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Карточка события */
+.event {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.event:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Изображение события */
+.event img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+/* Текст события */
+.event-text {
+    padding: 15px;
+}
+
+.event-text h3 {
+    font-size: 22px;
+    color: #8b0000;
+    margin-bottom: 10px;
+}
+
+.event-text p {
+    font-size: 16px;
+    color: #555;
+}
